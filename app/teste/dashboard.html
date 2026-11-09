@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VetExames - Gestão de Exames Veterinários</title>
+
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="VetExames">
+    <meta name="application-name" content="VetExames">
+    <meta name="theme-color" content="#1F5B5C">
+
+    <!-- Icons & Apple Touch Icon for Home Screen Saving -->
+    <link rel="icon" type="image/png" sizes="192x192" href="../../img/VetMob.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../img/VetMob.png">
+    <link rel="shortcut icon" href="../../img/VetMob.png">
+
+    <!-- Web App Manifest (Generated inline dynamically for direct home screen install capability) -->
+    <script>
+        const manifestData = {
+            "name": "VetMob - Gestão de Exames Veterinários",
+            "short_name": "VetExames",
+            "start_url": "./dashboard.html",
+            "display": "standalone",
+            "background_color": "#FAF9F6",
+            "theme_color": "#1F5B5C",
+            "icons": [
+                {
+                    "src": "../../img/VetMob.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                },
+                {
+                    "src": "../../img/VetMob.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        };
+        const stringManifest = JSON.stringify(manifestData);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = manifestURL;
+        document.head.appendChild(manifestLink);
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            teal: '#1F5B5C',      // Verde Petróleo / Teal principal
+                            tealDark: '#153E3F',  // Teal escuro para hover
+                            tealLight: '#E8F2F2', // Teal suave para fundos
+                            peach: '#F09B83',     // Salmão / Coral
+                            peachDark: '#D97E66',
+                            peachLight: '#FDF0EC',
+                            bg: '#FAF9F6'         // Fundo off-white suave
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Barra de rolagem estilizada para visual limpo */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-brand-bg text-slate-800 antialiased h-full flex flex-col pb-20 md:pb-6">
+
+    <!-- TOP HEADER -->
+    <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-md mx-auto md:max-w-4xl px-4 py-3 flex items-center justify-between">
+            <!-- Logo + App Title -->
+            <a href="index.html" class="flex items-center gap-3 group focus:outline-none">
+                <div class="w-10 h-10 rounded-xl bg-brand-tealLight flex items-center justify-center p-1 border border-brand-teal/10 shadow-sm overflow-hidden group-hover:scale-105 transition-transform">
+                    <img src="../../img/VetMob.png" alt="VetExames Logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-paw text-brand-teal text-xl\'></i>';">
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-slate-800 group-hover:text-brand-teal transition-colors">
+                        VetExames
+                    </h1>
+                </div>
+            </a>
+
+            <!-- User Profile & Notifications -->
+            <div class="flex items-center gap-2">
+                <button onclick="notificar('Nenhuma notificação nova')" aria-label="Notificações" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition relative focus:outline-none">
+                    <i class="fa-regular font-bold fa-bell text-sm"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-peach rounded-full ring-2 ring-white"></span>
+                </button>
+                <div class="w-9 h-9 rounded-full bg-brand-teal text-white flex items-center justify-center font-bold text-sm shadow-sm cursor-pointer hover:bg-brand-tealDark transition" title="Dr. Veterinário">
+                    VM
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-md mx-auto md:max-w-4xl px-4 pt-4 flex-1 w-full space-y-5">
+
+        <!-- MENU PRINCIPAL -->
+        <section>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                    Menu Principal
+                </h2>
+                <span class="text-[11px] font-normal text-slate-400">Acesso Rápido</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3.5">
+                
+                <!-- BOTÃO 1: CADASTRO DE EXAMES -->
+                <a href="cadastro_exame.html" 
+                   class="group bg-white hover:bg-brand-tealLight/40 p-4 rounded-2xl border border-slate-200/90 shadow-sm hover:border-brand-teal/40 transition-all duration-200 text-left flex flex-col justify-between h-32 relative overflow-hidden active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-brand-teal text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-file-medical text-lg"></i>
+                    </div>
+                    <div class="absolute top-3 right-3 text-brand-teal/20 group-hover:text-brand-teal/40 transition-colors">
+                        <i class="fa-solid fa-plus-circle text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-800 text-sm block group-hover:text-brand-teal transition-colors">Cadastrar Exame</span>
+                        <span class="text-[11px] text-slate-500 line-clamp-1">Novo agendamento / laudo</span>
+                    </div>
+                </a>
+
+                <!-- BOTÃO 2: EXAMES -->
+                <a href="exames.html" 
+                   class="group bg-white hover:bg-brand-tealLight/40 p-4 rounded-2xl border border-slate-200/90 shadow-sm hover:border-brand-teal/40 transition-all duration-200 text-left flex flex-col justify-between h-32 relative overflow-hidden active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-brand-peach text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-notes-medical text-lg"></i>
+                    </div>
+                    <div class="absolute top-3 right-3 text-brand-peach/20 group-hover:text-brand-peach/40 transition-colors">
+                        <i class="fa-solid fa-list-check text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-800 text-sm block group-hover:text-brand-teal transition-colors">Exames</span>
+                        <span class="text-[11px] text-slate-500 line-clamp-1">Lista, laudos e status</span>
+                    </div>
+                </a>
+
+                <!-- BOTÃO NOVO: EDITAR EXAME -->
+                <a href="edicao.html" 
+                   class="group bg-white hover:bg-brand-tealLight/40 p-4 rounded-2xl border border-slate-200/90 shadow-sm hover:border-brand-teal/40 transition-all duration-200 text-left flex flex-col justify-between h-32 relative overflow-hidden active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-pen-to-square text-lg"></i>
+                    </div>
+                    <div class="absolute top-3 right-3 text-amber-100 group-hover:text-amber-200 transition-colors">
+                        <i class="fa-solid fa-file-pen text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-800 text-sm block group-hover:text-brand-teal transition-colors">Editar Exame</span>
+                        <span class="text-[11px] text-slate-500 line-clamp-1">Atualizar laudos e dados</span>
+                    </div>
+                </a>
+
+                <!-- BOTÃO 3: PACIENTES -->
+                <a href="pacientes.html" 
+                   class="group bg-white hover:bg-brand-tealLight/40 p-4 rounded-2xl border border-slate-200/90 shadow-sm hover:border-brand-teal/40 transition-all duration-200 text-left flex flex-col justify-between h-32 relative overflow-hidden active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-slate-800 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-paw text-lg"></i>
+                    </div>
+                    <div class="absolute top-3 right-3 text-slate-200 group-hover:text-slate-300 transition-colors">
+                        <i class="fa-solid fa-dog text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-800 text-sm block group-hover:text-brand-teal transition-colors">Pacientes</span>
+                        <span class="text-[11px] text-slate-500 line-clamp-1">Pets e Tutores</span>
+                    </div>
+                </a>
+
+                <!-- BOTÃO 4: FINANCEIRO -->
+                <a href="financeiro.html" 
+                   class="group bg-white hover:bg-brand-tealLight/40 p-4 rounded-2xl border border-slate-200/90 shadow-sm hover:border-brand-teal/40 transition-all duration-200 text-left flex flex-col justify-between h-32 relative overflow-hidden active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-chart-line text-lg"></i>
+                    </div>
+                    <div class="absolute top-3 right-3 text-emerald-100 group-hover:text-emerald-200 transition-colors">
+                        <i class="fa-solid fa-receipt text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-800 text-sm block group-hover:text-brand-teal transition-colors">Financeiro</span>
+                        <span class="text-[11px] text-slate-500 line-clamp-1">Recebimentos e faturamento</span>
+                    </div>
+                </a>
+
+                <!-- BOTÃO 5: AGENDAMENTOS -->
+                <a href="agendamentos.html" 
+                   class="group bg-white hover:bg-brand-tealLight/40 p-4 rounded-2xl border border-slate-200/90 shadow-sm hover:border-brand-teal/40 transition-all duration-200 text-left flex flex-col justify-between h-32 relative overflow-hidden active:scale-95 col-span-2">
+                    <div class="flex items-center justify-between">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-calendar-check text-lg"></i>
+                        </div>
+                        <div class="text-indigo-200 group-hover:text-indigo-300 transition-colors mr-1">
+                            <i class="fa-solid fa-clock text-2xl"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-800 text-sm block group-hover:text-brand-teal transition-colors">Agendamentos</span>
+                        <span class="text-[11px] text-slate-500 line-clamp-1">Agenda de exames e compromissos marcados</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM MOBILE NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/90 py-2 px-4 z-40 md:max-w-4xl md:mx-auto md:rounded-t-2xl md:shadow-lg">
+        <div class="flex justify-around items-center max-w-md mx-auto">
+            
+            <!-- Início (Ativo) -->
+            <a href="index.html" class="flex flex-col items-center text-brand-teal font-bold transition group">
+                <i class="fa-solid fa-house text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] mt-0.5">Início</span>
+            </a>
+
+            <!-- Exames -->
+            <a href="exames.html" class="flex flex-col items-center text-slate-400 hover:text-brand-teal transition group">
+                <i class="fa-solid fa-notes-medical text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] mt-0.5">Exames</span>
+            </a>
+
+            <!-- Floating Quick Add Button (Cadastrar Exame) -->
+            <a href="cadastro_exame.html" aria-label="Cadastrar Exame" class="w-12 h-12 rounded-full bg-brand-teal text-white flex items-center justify-center text-xl shadow-lg hover:bg-brand-tealDark transition -mt-5 ring-4 ring-slate-50 active:scale-90">
+                <i class="fa-solid fa-plus"></i>
+            </a>
+
+            <!-- Pacientes -->
+            <a href="pacientes.html" class="flex flex-col items-center text-slate-400 hover:text-brand-teal transition group">
+                <i class="fa-solid fa-paw text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] mt-0.5">Pacientes</span>
+            </a>
+
+            <!-- Agendamentos -->
+            <a href="agendamentos.html" class="flex flex-col items-center text-slate-400 hover:text-brand-teal transition group">
+                <i class="fa-solid fa-calendar-check text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] mt-0.5">Agenda</span>
+            </a>
+
+        </div>
+    </nav>
+
+    <!-- TOAST / MENSAGEM FLUTUANTE DE AVISO -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl z-50 transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-brand-peach"></i>
+        <span id="toast-msg">Mensagem</span>
+    </div>
+
+    <!-- JAVASCRIPT DE UTILITÁRIOS E NOTIFICAÇÃO -->
+    <script>
+        // Configuração para futura integração com Google Apps Script
+        const GOOGLE_APP_SCRIPT_URL = ""; 
+
+        // Sistema de notificação toast
+        function notificar(msg) {
+            exibirToast(msg);
+        }
+
+        function exibirToast(mensagem) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.innerText = mensagem;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
