@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VetExames - Editar Exame</title>
+    <!-- PWA & Mobile Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="VetExames">
+    <link rel="apple-touch-icon" href="Prancheta 4.png">
+    <link rel="icon" type="image/png" href="Prancheta 4.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            teal: '#1F5B5C',
+                            tealDark: '#153E3F',
+                            tealLight: '#E8F2F2',
+                            peach: '#F09B83',
+                            peachDark: '#D97E66',
+                            peachLight: '#FDF0EC',
+                            bg: '#FAF9F6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-brand-bg text-slate-800 antialiased h-full flex flex-col pb-12">
+
+    <!-- HEADER TOP -->
+    <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-md mx-auto md:max-w-2xl px-4 py-3 flex items-center justify-between">
+            <a href="index.html" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div class="text-center">
+                <h1 class="font-bold text-base text-slate-800">Editar Exame</h1>
+                <p class="text-[11px] text-slate-500">Busque e atualize os dados do exame</p>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-brand-tealLight flex items-center justify-center p-1 border border-brand-teal/10 shadow-sm overflow-hidden">
+                <img src="Prancheta 4.png" alt="VetExames Logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-paw text-brand-teal text-xl\'></i>';">
+            </div>
+        </div>
+    </header>
+
+    <!-- FORMULARIO CONTAINER -->
+    <main class="max-w-md mx-auto md:max-w-2xl px-4 pt-4 flex-1 w-full space-y-4">
+
+        <!-- BARRA DE BUSCA PARA EDIÇÃO -->
+        <div class="bg-white p-4 rounded-2xl border border-brand-teal/30 shadow-sm space-y-2">
+            <label class="block text-xs font-bold text-brand-teal uppercase tracking-wider">Localizar Exame para Editar</label>
+            <div class="flex gap-2">
+                <input type="text" id="busca-termo" placeholder="Digite o nome do paciente..." class="flex-1 px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                <button type="button" onclick="buscarExames()" class="bg-brand-teal hover:bg-brand-tealDark text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-search"></i> Buscar
+                </button>
+            </div>
+            <input type="hidden" id="row-index"> <!-- Armazena a linha real da planilha -->
+            <span class="text-[11px] text-slate-400 block">Se houver nomes iguais, você poderá escolher o paciente correto na lista.</span>
+        </div>
+
+        <!-- LISTA DE RESULTADOS DA BUSCA (SE HOUVER MAIS DE UM) -->
+        <div id="container-resultados" class="hidden bg-white p-4 rounded-2xl border border-brand-peach shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold text-brand-peach uppercase tracking-wider">Foram encontrados vários registros:</h3>
+                <button type="button" onclick="fecharResultados()" class="text-slate-400 hover:text-slate-600 text-xs"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="lista-resultados" class="space-y-2 max-h-48 overflow-y-auto">
+                <!-- Itens injetados via JS -->
+            </div>
+        </div>
+
+        <form id="form-exame" onsubmit="salvarEdicaoExame(event)" class="space-y-4">
+
+            <!-- FOTO DO PACIENTE -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm text-center">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Foto do Paciente / Exame</label>
+                
+                <!-- Preview / Placeholder -->
+                <div id="foto-preview-container" class="relative w-32 h-32 mx-auto rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden mb-3">
+                    <img id="foto-preview" src="" alt="Preview" class="hidden w-full h-full object-cover">
+                    <div id="foto-placeholder" class="text-center text-slate-400 p-2">
+                        <i class="fa-solid fa-camera text-2xl mb-1"></i>
+                        <span class="block text-[10px]">Sem Foto</span>
+                    </div>
+                </div>
+
+                <!-- Câmera Container -->
+                <div id="camera-container" class="hidden relative w-full bg-black rounded-2xl overflow-hidden mb-3">
+                    <video id="webcam" autoplay playsinline class="w-full h-48 object-cover"></video>
+                    <div class="absolute bottom-2 left-0 right-0 flex justify-center gap-2 px-2">
+                        <button type="button" onclick="capturarFoto()" class="bg-brand-peach text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow">
+                            <i class="fa-solid fa-circle-dot"></i> Capturar
+                        </button>
+                        <button type="button" onclick="alternarCamera()" class="bg-slate-800/80 text-white text-xs p-1.5 rounded-lg shadow">
+                            <i class="fa-solid fa-camera-rotate"></i>
+                        </button>
+                        <button type="button" onclick="fecharCamera()" class="bg-red-600/80 text-white text-xs p-1.5 rounded-lg shadow">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação para Imagem -->
+                <div class="flex justify-center gap-2">
+                    <button type="button" onclick="abrirCamera()" class="bg-brand-tealLight text-brand-teal hover:bg-brand-teal hover:text-white text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-camera"></i> Usar Câmera
+                    </button>
+                    <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-upload"></i> Arquivo
+                        <input type="file" id="input-foto-file" accept="image/*" class="hidden" onchange="carregarFotoArquivo(event)">
+                    </label>
+                    <button type="button" id="btn-remover-foto" onclick="removerFoto()" class="hidden bg-red-50 text-red-600 text-xs font-semibold px-3 py-2 rounded-xl hover:bg-red-100 transition">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="foto-base64" name="foto">
+            </div>
+
+            <!-- DADOS DO PET -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h3 class="text-xs font-bold text-brand-teal uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-paw"></i> Dados do Paciente
+                </h3>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nome do Paciente *</label>
+                    <input type="text" id="nome" required placeholder="Ex: Thor" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Espécie *</label>
+                        <select id="especie" required class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal bg-white">
+                            <option value="">Selecione...</option>
+                            <option value="Canino">Canino</option>
+                            <option value="Felino">Felino</option>
+                            <option value="Equino">Equino</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Raça</label>
+                        <input type="text" id="raca" placeholder="Ex: Golden Retriever" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Idade</label>
+                        <input type="text" id="idade" placeholder="Ex: 3 anos" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Peso (kg)</label>
+                        <input type="text" id="peso" placeholder="Ex: 12.5" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Castrado?</label>
+                        <select id="castrado" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal bg-white">
+                            <option value="Sim">Sim</option>
+                            <option value="Não">Não</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DADOS DO TUTOR -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h3 class="text-xs font-bold text-brand-teal uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-user"></i> Dados do Tutor
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Nome do Tutor *</label>
+                        <input type="text" id="tutor" required placeholder="Ex: Maria Silva" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Telefone do Tutor</label>
+                        <input type="tel" id="telefoneTutor" placeholder="(84) 98888-8888" oninput="mascaraTelefone(this)" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                    </div>
+                </div>
+
+                <!-- CIDADE E ESTADO (UF) -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Estado (UF)</label>
+                        <select id="uf" onchange="carregarCidades()" class="w-full px-2 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal bg-white font-medium">
+                            <option value="">UF...</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Cidade</label>
+                        <select id="cidade" disabled class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal bg-white font-medium">
+                            <option value="">Selecione o estado primeiro</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DADOS VETERINÁRIO & CLÍNICA -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h3 class="text-xs font-bold text-brand-teal uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-doctor"></i> Solicitante / Clínica
+                </h3>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Clínica Veterinária</label>
+                    <input type="text" id="clinica" placeholder="Ex: Vet Clínica Caicó" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Veterinário(a)</label>
+                        <input type="text" id="veterinario" placeholder="Ex: Dr. Lucas Rocha" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">CRMV</label>
+                        <input type="text" id="crmv" placeholder="Ex: 1234/RN" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Telefone do Veterinário</label>
+                    <input type="tel" id="telefoneVet" placeholder="(84) 99999-9999" oninput="mascaraTelefone(this)" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                </div>
+            </div>
+
+            <!-- DADOS DO EXAME -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h3 class="text-xs font-bold text-brand-teal uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-notes-medical"></i> Detalhes do Exame
+                </h3>
+
+                <!-- EXAME 1 -->
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo do Exame 1 *</label>
+                        <select id="tipoExame" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal bg-white">
+                            <option value="">Selecione o Exame...</option>
+                            <option value="Ultrassom Abdominal Total">Ultrassom Abdominal Total</option>
+                            <option value="Raio-X Digital">Raio-X Digital</option>
+                            <option value="Eletrocardiograma (ECG)">Eletrocardiograma (ECG)</option>
+                            <option value="Endoscopia">Endoscopia</option>
+                            <option value="Colonoscopia">Colonoscopia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Valor do Exame 1 (R$) *</label>
+                        <input type="text" id="valor" required placeholder="R$ 0,00" oninput="mascaraMoeda(this)" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal font-semibold text-slate-800 bg-white">
+                    </div>
+                </div>
+
+                <!-- EXAME 2 -->
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo do Exame 2 (Opcional)</label>
+                        <select id="tipoExame2" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal bg-white">
+                            <option value="">Nenhum / Selecione...</option>
+                            <option value="Ultrassom Abdominal Total">Ultrassom Abdominal Total</option>
+                            <option value="Raio-X Digital">Raio-X Digital</option>
+                            <option value="Eletrocardiograma (ECG)">Eletrocardiograma (ECG)</option>
+                            <option value="Endoscopia">Endoscopia</option>
+                            <option value="Colonoscopia">Colonoscopia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Valor do Exame 2 (R$)</label>
+                        <input type="text" id="valor2" placeholder="R$ 0,00" oninput="mascaraMoeda(this)" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal font-semibold text-slate-800 bg-white">
+                    </div>
+                </div>
+
+                <!-- EXAME 3 -->
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo do Exame 3 (Opcional)</label>
+                        <select id="tipoExame3" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal bg-white">
+                            <option value="">Nenhum / Selecione...</option>
+                            <option value="Ultrassom Abdominal Total">Ultrassom Abdominal Total</option>
+                            <option value="Raio-X Digital">Raio-X Digital</option>
+                            <option value="Eletrocardiograma (ECG)">Eletrocardiograma (ECG)</option>
+                            <option value="Endoscopia">Endoscopia</option>
+                            <option value="Colonoscopia">Colonoscopia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Valor do Exame 3 (R$)</label>
+                        <input type="text" id="valor3" placeholder="R$ 0,00" oninput="mascaraMoeda(this)" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal font-semibold text-slate-800 bg-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Data do Exame *</label>
+                    <input type="date" id="dataExame" required class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal bg-white">
+                </div>
+            </div>
+
+            <!-- ANOTAÇÕES & SUSPEITA CLÍNICA -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h3 class="text-xs font-bold text-brand-teal uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-pen"></i> Informações Clínicas
+                </h3>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Suspeita Clínica</label>
+                    <input type="text" id="suspeitaClinica" placeholder="Ex: Suspeita de piometra / Afecção cardíaca" class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Anotações</label>
+                    <textarea id="anotacoes" rows="3" placeholder="Observações gerais sobre o paciente ou o atendimento..." class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-teal resize-none"></textarea>
+                </div>
+            </div>
+
+        </form>
+    </main>
+
+    <!-- BOTÃO FLUTUANTE DE SALVAR ALTERAÇÕES (FAB) -->
+    <button type="submit" form="form-exame" id="btn-submit" title="Salvar Alterações" class="fixed bottom-6 right-5 w-14 h-14 bg-brand-teal hover:bg-brand-tealDark text-white rounded-full shadow-2xl flex items-center justify-center text-xl transition-all duration-200 active:scale-90 z-50 ring-4 ring-white">
+        <i class="fa-solid fa-floppy-disk"></i>
+    </button>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loading" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center flex-col text-white hidden">
+        <div class="w-12 h-12 border-4 border-brand-peach border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p class="font-bold text-sm" id="loading-text">Processando...</p>
+        <p class="text-xs text-slate-300">Por favor, aguarde.</p>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl z-50 transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-brand-peach"></i>
+        <span id="toast-msg">Mensagem</span>
+    </div>
+
+    <!-- SCRIPT DE FUNCIONALIDADES E INTEGRAÇÃO -->
+    <script>
+        const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyIIFL1_FXX61grp8q28Ioh_5yhLLu0U42QtSsJWHy3vlZSSAre0BkonF8a3hf6SDNB/exec";
+
+        let videoStream = null;
+        let currentFacingMode = 'environment';
+        let todosExamesCache = []; // Armazena a lista para busca instantânea
+
+        window.addEventListener('DOMContentLoaded', () => {
+            carregarUFs();
+            carregarCacheExames();
+        });
+
+        async function carregarUFs() {
+            const selectUf = document.getElementById('uf');
+            try {
+                const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
+                const ufs = await response.json();
+                
+                selectUf.innerHTML = '<option value="">UF...</option>';
+                ufs.forEach(uf => {
+                    const opt = document.createElement('option');
+                    opt.value = uf.sigla;
+                    opt.textContent = uf.sigla;
+                    if(uf.sigla === 'RN') opt.selected = true;
+                    selectUf.appendChild(opt);
+                });
+
+                if (selectUf.value) carregarCidades();
+            } catch (e) {
+                console.error("Erro ao carregar UFs:", e);
+            }
+        }
+
+        async function carregarCidades() {
+            const uf = document.getElementById('uf').value;
+            const selectCidade = document.getElementById('cidade');
+
+            if (!uf) {
+                selectCidade.innerHTML = '<option value="">Selecione o estado primeiro</option>';
+                selectCidade.disabled = true;
+                return;
+            }
+
+            selectCidade.disabled = true;
+            selectCidade.innerHTML = '<option value="">Carregando cidades...</option>';
+
+            try {
+                const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+                const cidades = await response.json();
+
+                selectCidade.innerHTML = '<option value="">Selecione a Cidade...</option>';
+                cidades.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.nome;
+                    opt.textContent = c.nome;
+                    selectCidade.appendChild(opt);
+                });
+                selectCidade.disabled = false;
+            } catch (e) {
+                console.error("Erro ao carregar cidades:", e);
+                selectCidade.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+            }
+        }
+
+        // Pré-carrega todos os exames para busca rápida
+        async function carregarCacheExames() {
+            try {
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL);
+                todosExamesCache = await response.json();
+            } catch (e) {
+                console.error("Erro ao carregar cache de exames:", e);
+            }
+        }
+
+        // BUSCAR EXAMES COM FILTRO DE MÚLTIPLOS NOMES
+        async function buscarExames() {
+            const termo = document.getElementById('busca-termo').value.toLowerCase().trim();
+            if (!termo) {
+                exibirToast("Digite o nome do paciente para buscar.");
+                return;
+            }
+
+            document.getElementById('loading-text').innerText = "Buscando exames...";
+            document.getElementById('loading').classList.remove('hidden');
+
+            // Se o cache ainda estiver vazio, busca da API
+            if (todosExamesCache.length === 0) {
+                await carregarCacheExames();
+            }
+
+            document.getElementById('loading').classList.add('hidden');
+
+            // Filtra todos os exames que contêm o termo no nome ou tutor
+            const encontrados = todosExamesCache.filter(item => 
+                (item.nome && item.nome.toLowerCase().includes(termo)) ||
+                (item.tutor && item.tutor.toLowerCase().includes(termo))
+            );
+
+            if (encontrados.length === 0) {
+                exibirToast("Nenhum exame encontrado com este termo.");
+                fecharResultados();
+            } else if (encontrados.length === 1) {
+                // Se achou apenas 1, preenche direto
+                preencherFormulario(encontrados[0]);
+                exibirToast("Exame carregado com sucesso!");
+                fecharResultados();
+            } else {
+                // Se achou vários com o mesmo nome, exibe a lista para o usuário escolher
+                exibirListaResultados(encontrados);
+            }
+        }
+
+        function exibirListaResultados(lista) {
+            const container = document.getElementById('container-resultados');
+            const listaDiv = document.getElementById('lista-resultados');
+            listaDiv.innerHTML = '';
+
+            lista.forEach(item => {
+                const dataFmt = item.dataExame ? new Date(item.dataExame).toLocaleDateString('pt-BR') : 'Data não informada';
+                const div = document.createElement('div');
+                div.className = "p-2.5 bg-slate-50 hover:bg-brand-tealLight rounded-xl border border-slate-200 cursor-pointer flex justify-between items-center transition";
+                div.innerHTML = `
+                    <div>
+                        <span class="font-bold text-xs text-slate-800 block">🐾 ${item.nome} (Tutor: ${item.tutor || 'Não informado'})</span>
+                        <span class="text-[10px] text-slate-500">Exame: ${item.tipoExame || 'Geral'} | Data: ${dataFmt}</span>
+                    </div>
+                    <span class="bg-brand-teal text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">Selecionar</span>
+                `;
+                div.onclick = () => {
+                    preencherFormulario(item);
+                    fecharResultados();
+                    exibirToast(`Paciente ${item.nome} selecionado!`);
+                };
+                listaDiv.appendChild(div);
+            });
+
+            container.classList.remove('hidden');
+        }
+
+        function fecharResultados() {
+            document.getElementById('container-resultados').classList.add('hidden');
+        }
+
+        // PREENCHE OS CAMPOS COM OS DADOS RETORNADOS
+        function preencherFormulario(d) {
+            document.getElementById('row-index').value = d.rowIndex || '';
+            document.getElementById('nome').value = d.nome || '';
+            document.getElementById('tutor').value = d.tutor || '';
+            document.getElementById('idade').value = d.idade || '';
+            document.getElementById('clinica').value = d.clinica || '';
+            document.getElementById('especie').value = d.especie || '';
+            document.getElementById('raca').value = d.raca || '';
+            document.getElementById('veterinario').value = d.veterinario || '';
+            document.getElementById('crmv').value = d.crmv || '';
+            document.getElementById('peso').value = d.peso || '';
+            document.getElementById('dataExame').value = d.dataExame ? d.dataExame.split('T')[0] : '';
+            document.getElementById('castrado').value = d.castrado || 'Sim';
+            document.getElementById('telefoneTutor').value = d.telefoneTutor || '';
+            document.getElementById('telefoneVet').value = d.telefoneVet || '';
+            document.getElementById('tipoExame').value = d.tipoExame || '';
+            document.getElementById('valor').value = d.valor || '';
+            document.getElementById('tipoExame2').value = d.tipoExame2 || '';
+            document.getElementById('valor2').value = d.valor2 || '';
+            document.getElementById('tipoExame3').value = d.tipoExame3 || '';
+            document.getElementById('valor3').value = d.valor3 || '';
+            document.getElementById('anotacoes').value = d.anotacoes || '';
+            document.getElementById('suspeitaClinica').value = d.suspeitaClinica || '';
+
+            if (d.foto) {
+                setFotoPreview(d.foto);
+            }
+        }
+
+        // CÂMERA & FOTO
+        async function abrirCamera() {
+            const container = document.getElementById('camera-container');
+            const video = document.getElementById('webcam');
+
+            try {
+                if (videoStream) {
+                    videoStream.getTracks().forEach(track => track.stop());
+                }
+                videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode }
+                });
+                video.srcObject = videoStream;
+                container.classList.remove('hidden');
+            } catch (err) {
+                alert("Não foi possível acessar a câmera. Verifique as permissões.");
+            }
+        }
+
+        function alternarCamera() {
+            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+            abrirCamera();
+        }
+
+        function fecharCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('camera-container').classList.add('hidden');
+        }
+
+        function capturarFoto() {
+            const video = document.getElementById('webcam');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const base64 = canvas.toDataURL('image/jpeg', 0.8);
+            setFotoPreview(base64);
+            fecharCamera();
+        }
+
+        function carregarFotoArquivo(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    setFotoPreview(e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function setFotoPreview(base64) {
+            document.getElementById('foto-preview').src = base64;
+            document.getElementById('foto-preview').classList.remove('hidden');
+            document.getElementById('foto-placeholder').classList.add('hidden');
+            document.getElementById('btn-remover-foto').classList.remove('hidden');
+            document.getElementById('foto-base64').value = base64;
+        }
+
+        function removerFoto() {
+            document.getElementById('foto-preview').src = '';
+            document.getElementById('foto-preview').classList.add('hidden');
+            document.getElementById('foto-placeholder').classList.add('hidden');
+            document.getElementById('btn-remover-foto').classList.add('hidden');
+            document.getElementById('foto-base64').value = '';
+            document.getElementById('input-foto-file').value = '';
+        }
+
+        // MÁSCARAS
+        function mascaraTelefone(input) {
+            let v = input.value.replace(/\D/g, '');
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 10) {
+                v = v.replace(/^(\d\d)(\d{5})(\d{4})$/, '($1) $2-$3');
+            } else if (v.length > 6) {
+                v = v.replace(/^(\d\d)(\d{4})(\d{0,4})$/, '($1) $2-$3');
+            } else if (v.length > 2) {
+                v = v.replace(/^(\d\d)(\d{0,5})$/, '($1) $2');
+            }
+            input.value = v;
+        }
+
+        function mascaraMoeda(input) {
+            let value = input.value.replace(/\D/g, '');
+            value = (value / 100).toFixed(2) + '';
+            value = value.replace(".", ",");
+            value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+            input.value = 'R$ ' + value;
+        }
+
+        // SALVAR EDIÇÃO DO EXAME
+        async function salvarEdicaoExame(event) {
+            event.preventDefault();
+
+            const rowIndex = document.getElementById('row-index').value;
+            if (!rowIndex) {
+                exibirToast("Busque e selecione um exame para editar primeiro.");
+                return;
+            }
+
+            const uf = document.getElementById('uf').value;
+            const cidade = document.getElementById('cidade').value;
+            const cidadeUf = cidade ? `${cidade} - ${uf}` : uf;
+
+            const payload = {
+                action: "editar",
+                rowIndex: rowIndex,
+                nome: document.getElementById('nome').value,
+                tutor: document.getElementById('tutor').value,
+                idade: document.getElementById('idade').value,
+                cidadeUf: cidadeUf,
+                clinica: document.getElementById('clinica').value,
+                especie: document.getElementById('especie').value,
+                raca: document.getElementById('raca').value,
+                veterinario: document.getElementById('veterinario').value,
+                crmv: document.getElementById('crmv').value,
+                peso: document.getElementById('peso').value,
+                dataExame: document.getElementById('dataExame').value,
+                castrado: document.getElementById('castrado').value,
+                foto: document.getElementById('foto-base64').value,
+                telefoneTutor: document.getElementById('telefoneTutor').value,
+                telefoneVet: document.getElementById('telefoneVet').value,
+                tipoExame: document.getElementById('tipoExame').value,
+                valor: document.getElementById('valor').value,
+                tipoExame2: document.getElementById('tipoExame2').value,
+                valor2: document.getElementById('valor2').value,
+                tipoExame3: document.getElementById('tipoExame3').value,
+                valor3: document.getElementById('valor3').value,
+                anotacoes: document.getElementById('anotacoes').value,
+                suspeitaClinica: document.getElementById('suspeitaClinica').value
+            };
+
+            document.getElementById('loading-text').innerText = "Salvando alterações...";
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                await fetch(GOOGLE_APP_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                document.getElementById('loading').classList.add('hidden');
+                exibirToast("Exame atualizado com sucesso!");
+                
+                setTimeout(() => {
+                    window.location.href = "exames.html";
+                }, 1800);
+
+            } catch (error) {
+                document.getElementById('loading').classList.add('hidden');
+                console.error("Erro ao salvar:", error);
+                alert("Ocorreu um erro ao conectar com o servidor. Tente novamente.");
+            }
+        }
+
+        function exibirToast(mensagem) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.innerText = mensagem;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
